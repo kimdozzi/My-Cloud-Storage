@@ -30,6 +30,12 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+bootJar {
+	archiveBaseName = 'GitGetApplication'
+	archiveFileName = 'GitGetApplication.jar'
+	archiveVersion = "0.0.1"
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
