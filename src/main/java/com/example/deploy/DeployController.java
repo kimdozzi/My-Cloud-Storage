@@ -11,5 +11,4 @@ public class DeployController {
     public ResponseEntity hello() {
         return ResponseEntity.ok("배포 자동화 테스트");
     }
-
 }
