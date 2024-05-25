@@ -19,8 +19,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-
-
     - name: Grant execute permission for gradlew
       run: chmod +x ./gradlew
       shell: bash
@@ -59,4 +57,7 @@ jobs:
 
       - name: delete old docker image !
         run: sudo docker system prune -f
+
+      - name: execute deploy.sh
+        run: sh /home/ec2-user/deploy.sh
 
