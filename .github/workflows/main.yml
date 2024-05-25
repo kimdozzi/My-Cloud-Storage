@@ -54,7 +54,7 @@ jobs:
 #      - name: docker run new container
 #        run: sudo docker run --name github-actions-demo --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
 #
-#      - name: delete old docker image !
+#      - name: delete old docker image
 #        run: sudo docker system prune -f
 
       - name: execute deploy.sh
