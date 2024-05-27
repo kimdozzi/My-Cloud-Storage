@@ -41,22 +41,34 @@ jobs:
     - name: dockerhub push
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
 
-  run-docker-image-on-ec2:
-    needs: build-docker-image
-    runs-on: self-hosted
-    steps:
-#      - name: docker pull
-#        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
+    - name: action-slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        author_name: Sloth Backend - dev
+        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
+        mention: here
+        if_mention: failure,cancelled
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
+      if: always() # Pick up events even if the job fails or is canceled.
 
-#      - name: docker stop container
-#        run: sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
-
-#      - name: docker run new container
-#        run: sudo docker run --name github-actions-demo --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
-
-#      - name: delete old docker image
-#        run: sudo docker system prune -f
-
-      - name: execute deploy.sh
-        run: sh /home/ec2-user/deploy.sh
+#  run-docker-image-on-ec2:
+#    needs: build-docker-image
+#    runs-on: self-hosted
+#    steps:
+##      - name: docker pull
+##        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
+#
+##      - name: docker stop container
+##        run: sudo docker stop $(sudo docker ps -q) 2>/dev/null || true
+#
+##      - name: docker run new container
+##        run: sudo docker run --name github-actions-demo --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
+#
+##      - name: delete old docker image
+##        run: sudo docker system prune -f
+#
+#      - name: execute deploy.sh
+#        run: sh /home/ec2-user/deploy.sh
 
