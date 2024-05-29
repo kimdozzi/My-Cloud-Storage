@@ -55,12 +55,12 @@ jobs:
       if: always() # Pick up events even if the job fails or is canceled.
 
   # Self-hosted Runner로 deploy.sh 파일 실행
-#  run-docker-image-on-ec2:
-#    needs: build-docker-image
-#    runs-on: self-hosted
-#    steps:
-#      - name: execute deploy.sh
-#        run: sh /home/ec2-user/deploy.sh
+  run-docker-image-on-ec2:
+    needs: build-docker-image
+    runs-on: self-hosted
+    steps:
+      - name: execute deploy.sh
+        run: sh /home/ec2-user/deploy.sh
 
   # docker + nginx를 이용한 배포
 #      - name: docker pull
