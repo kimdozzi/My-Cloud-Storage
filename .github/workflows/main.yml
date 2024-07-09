@@ -42,25 +42,25 @@ jobs:
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/github-actions-demo
 
     # Slack Webhook 설정
-    - name: action-slack
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        author_name: Sloth Backend - dev
-        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
-        mention: here
-        if_mention: failure,cancelled
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
-      if: always() # Pick up events even if the job fails or is canceled.
+    # - name: action-slack
+    #   uses: 8398a7/action-slack@v3
+    #   with:
+    #     status: ${{ job.status }}
+    #     author_name: Sloth Backend - dev
+    #     fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
+    #     mention: here
+    #     if_mention: failure,cancelled
+    #   env:
+    #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
+    #   if: always() # Pick up events even if the job fails or is canceled.
 
   # Self-hosted Runner로 deploy.sh 파일 실행
-  run-docker-image-on-ec2:
-    needs: build-docker-image
-    runs-on: self-hosted
-    steps:
-      - name: execute deploy.sh
-        run: sh /home/ec2-user/deploy.sh
+  # run-docker-image-on-ec2:
+  #   needs: build-docker-image
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: execute deploy.sh
+  #       run: sh /home/ec2-user/deploy.sh
 
   # docker + nginx를 이용한 배포
 #      - name: docker pull
