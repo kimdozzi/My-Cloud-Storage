@@ -25,8 +25,26 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
-	// Jasypt
-	implementation 'com.github.ulisesbocchio:jasypt-spring-boot-starter:3.0.5'
+	// Thymeleaf
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// REDIS
+//	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// JWT
+//	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
+//	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
+//	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+	// MySQL
+	runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
