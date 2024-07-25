@@ -1,4 +1,4 @@
-package com.example.deploy;
+package com.example.deploy.user.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class DeployController {
-    @GetMapping("/")
+    @GetMapping("/test")
     public ResponseEntity hello() {
         return ResponseEntity.ok("배포 자동화 테스트");
     }
