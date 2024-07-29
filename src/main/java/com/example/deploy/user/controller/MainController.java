@@ -2,6 +2,7 @@ package com.example.deploy.user.controller;
 
 import com.example.deploy.user.dto.JoinDTO;
 import com.example.deploy.user.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ public class MainController {
     }
 
     @GetMapping("/admin")
+    @PreAuthorize("isAuthenticated() and hasRole('ROLE_ADMIN')")
     public String adminP() {
 
         return "admin Controller";

@@ -1,13 +1,17 @@
 package com.example.deploy.security.config;
 
+import com.example.deploy.security.jwt.JWTFilter;
 import com.example.deploy.security.jwt.JWTUtil;
 import com.example.deploy.security.jwt.LoginFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -15,8 +19,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final String PERMITTED_ROLES[] = {"USER", "ADMIN"};
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
 
@@ -45,18 +51,22 @@ public class SecurityConfig {
 //                    return config;
 //                }))
 
+                // http 베이직 인증 방식
+                .httpBasic(HttpBasicConfigurer::disable)
+
+                // 로그인 방식
+                .formLogin(FormLoginConfigurer::disable)
+
                 // jwt
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil),
+                        UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/", "/login", "/join").permitAll()
+                        request
                                 .requestMatchers("/admin").hasRole("ADMIN")
-                                .anyRequest().authenticated());
+                                .requestMatchers("/", "/login", "/join").permitAll()
+                                .anyRequest().hasAnyRole(PERMITTED_ROLES));
 
-        // 로그인 방식
-        http.formLogin(auth -> auth.disable());
-
-        // http 베이직 인증 방식
-        http.httpBasic(auth -> auth.disable());
         return http.build();
     }
 

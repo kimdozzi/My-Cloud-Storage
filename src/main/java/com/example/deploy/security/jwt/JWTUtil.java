@@ -2,25 +2,25 @@ package com.example.deploy.security.jwt;
 
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @Component
+@Getter
 public class JWTUtil {
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    public static Key getKey() {
-        return key;
-    }
 
     // JWT 토큰 생성
     public String generateToken(String username, String role) {
+
         return Jwts.builder()
+
                 // username
                 .setSubject(username)
 
@@ -37,13 +37,28 @@ public class JWTUtil {
                 .compact();
     }
 
-    // JWT 토큰 검증 및 파싱
-    public Claims validateToken(String token) {
-        Jws<Claims> claimsJws = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token);
 
-        return claimsJws.getBody();
+    // JWT 토큰 검증 및 클레임 파싱
+    public static Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key) // 서명 키 설정
+                .build()
+                .parseClaimsJws(token) // 토큰 파싱 및 검증
+                .getBody(); // 클레임 반환
+    }
+
+    // 토큰에서 username 추출
+    public String getUsername(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    // 토큰에서 role 추출
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    // 토큰 만료 여부 확인
+    public boolean isTokenExpired(String token) {
+        return getClaims(token).getExpiration().before(new Date());
     }
 }
