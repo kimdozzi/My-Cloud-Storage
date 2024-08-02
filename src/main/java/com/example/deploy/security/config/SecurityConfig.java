@@ -3,6 +3,8 @@ package com.example.deploy.security.config;
 import com.example.deploy.security.jwt.JWTFilter;
 import com.example.deploy.security.jwt.JWTUtil;
 import com.example.deploy.security.jwt.LoginFilter;
+import java.util.Arrays;
+import java.util.Collections;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
 @EnableWebSecurity
@@ -40,16 +43,16 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // cors
-//                .cors(corsConfig -> corsConfig.configurationSource(request -> {
-//                    CorsConfiguration config = new CorsConfiguration();
-//                    config.setAllowedOrigins(Collections.singletonList("http://localhost:8080"));
-//                    config.setAllowedMethods(Collections.singletonList("*"));
-//                    config.setAllowCredentials(true);
-//                    config.setAllowedHeaders(Collections.singletonList("*"));
-//                    config.setExposedHeaders(Arrays.asList("Authorization"));
-//                    config.setMaxAge(3600L);
-//                    return config;
-//                }))
+                .cors(corsConfig -> corsConfig.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setExposedHeaders(Arrays.asList("Authorization"));
+                    config.setMaxAge(3600L);
+                    return config;
+                }))
 
                 // http 베이직 인증 방식
                 .httpBasic(HttpBasicConfigurer::disable)
@@ -64,7 +67,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers("/admin").hasRole("ADMIN")
-                                .requestMatchers("/", "/login", "/join").permitAll()
+                                .requestMatchers("/", "/login", "/join", "/test").permitAll()
                                 .anyRequest().hasAnyRole(PERMITTED_ROLES));
 
         return http.build();

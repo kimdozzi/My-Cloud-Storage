@@ -48,7 +48,7 @@ public class JWTFilter extends OncePerRequestFilter {
         System.out.println(username + " " + role);
         User user = new User();
         user.setUsername(username);
-        user.setPassword("temppassword");
+        // user.setPassword("temppassword");
         user.setRole("ROLE_" + role);
 
         CustomUserDetails customUserDetails = new CustomUserDetails(user);
