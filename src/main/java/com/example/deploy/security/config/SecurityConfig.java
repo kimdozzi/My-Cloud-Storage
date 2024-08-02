@@ -67,7 +67,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers("/admin").hasRole("ADMIN")
-                                .requestMatchers("/", "/login", "/join", "/test").permitAll()
+                                .requestMatchers("/", "/login", "/join", "/reissue", "/test").permitAll()
                                 .anyRequest().hasAnyRole(PERMITTED_ROLES));
 
         return http.build();
