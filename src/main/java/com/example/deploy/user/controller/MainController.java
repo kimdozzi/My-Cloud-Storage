@@ -23,7 +23,7 @@ public class MainController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/login")
     public String mainP() {
 
         String name = SecurityContextHolder.getContext().getAuthentication().getName();
