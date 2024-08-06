@@ -1,7 +1,7 @@
 package com.example.deploy.user.service;
 
-import com.example.deploy.user.dto.JoinDTO;
-import com.example.deploy.user.entity.User;
+import com.example.deploy.user.dto.JoinRequest;
+import com.example.deploy.user.domain.User;
 import com.example.deploy.user.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,9 +17,9 @@ public class UserService {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    public void joinProcess(JoinDTO joinDTO) {
-        String username = joinDTO.getUsername();
-        String password = joinDTO.getPassword();
+    public void joinProcess(JoinRequest joinRequest) {
+        String username = joinRequest.getUsername();
+        String password = joinRequest.getPassword();
 
         Boolean isExist = userRepository.existsByUsername(username);
 
@@ -28,7 +28,7 @@ public class UserService {
         User data = new User();
         data.setUsername(username);
         data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole("ADMIN");
+        data.setRole("ROLE_ADMIN");
 
         userRepository.save(data);
     }

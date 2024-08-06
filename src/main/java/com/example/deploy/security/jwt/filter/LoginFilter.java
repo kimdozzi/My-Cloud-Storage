@@ -1,6 +1,8 @@
-package com.example.deploy.security.jwt;
+package com.example.deploy.security.jwt.filter;
 
-import com.example.deploy.security.config.CustomUserDetails;
+import com.example.deploy.security.jwt.domain.Refresh;
+import com.example.deploy.security.jwt.repository.RefreshRepository;
+import com.example.deploy.security.jwt.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -8,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,7 +29,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
     }
-
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -47,6 +49,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // 유저 정보 받아오기
         String username = authentication.getName();
+
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
@@ -57,10 +60,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.generateToken("access", username, role, 600000L);
         String refresh = jwtUtil.generateToken("refresh", username, role, 86400000L);
 
+
         // 응답 설정
         response.setHeader("access", access);
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
+
 
 //        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 //        String username = customUserDetails.getUsername();
@@ -75,6 +80,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 //        response.setHeader("Authorization", "Bearer " + token);
 
     }
+
 
     private Cookie createCookie(String key, String value) {
         Cookie cookie = new Cookie(key, value);

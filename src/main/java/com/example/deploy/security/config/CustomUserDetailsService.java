@@ -1,6 +1,6 @@
 package com.example.deploy.security.config;
 
-import com.example.deploy.user.entity.User;
+import com.example.deploy.user.domain.User;
 import com.example.deploy.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

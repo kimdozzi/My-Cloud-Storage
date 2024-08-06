@@ -1,4 +1,4 @@
-package com.example.deploy.security.jwt;
+package com.example.deploy.security.jwt.util;
 
 
 import io.jsonwebtoken.Claims;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Getter
 public class JWTUtil {
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
     // JWT 토큰 검증 및 클레임 파싱
     public static Claims getClaims(String token) {
@@ -44,7 +44,7 @@ public class JWTUtil {
                 // 만료일
                 .setExpiration(new Date(System.currentTimeMillis() + expiredMs)) // 10시간 유효
 
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 

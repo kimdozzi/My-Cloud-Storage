@@ -1,4 +1,4 @@
-package com.example.deploy.user.controller;
+package com.example.deploy;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

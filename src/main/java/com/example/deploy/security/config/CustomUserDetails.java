@@ -1,6 +1,6 @@
 package com.example.deploy.security.config;
 
-import com.example.deploy.user.entity.User;
+import com.example.deploy.user.domain.User;
 import java.util.ArrayList;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;

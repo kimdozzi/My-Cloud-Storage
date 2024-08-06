@@ -1,7 +1,8 @@
-package com.example.deploy.security.jwt;
+package com.example.deploy.security.jwt.filter;
 
 import com.example.deploy.security.config.CustomUserDetails;
-import com.example.deploy.user.entity.User;
+import com.example.deploy.security.jwt.util.JWTUtil;
+import com.example.deploy.user.domain.User;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

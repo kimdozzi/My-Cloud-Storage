@@ -1,6 +1,6 @@
 package com.example.deploy.user.controller;
 
-import com.example.deploy.user.dto.JoinDTO;
+import com.example.deploy.user.dto.JoinRequest;
 import com.example.deploy.user.service.UserService;
 import java.util.Collection;
 import java.util.Iterator;
@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @ResponseBody
-public class MainController {
+public class AuthController {
 
     private final UserService userService;
 
-    public MainController(UserService userService) {
+    public AuthController(UserService userService) {
         this.userService = userService;
     }
 
@@ -40,14 +40,13 @@ public class MainController {
     @GetMapping("/admin")
     @PreAuthorize("isAuthenticated() and hasRole('ROLE_ADMIN')")
     public String adminP() {
-
         return "admin Controller";
     }
 
     @PostMapping("/join")
-    public String joinProcess(JoinDTO joinDTO) {
+    public String joinProcess(JoinRequest joinRequest) {
 
-        userService.joinProcess(joinDTO);
+        userService.joinProcess(joinRequest);
         return "Ok";
     }
 }

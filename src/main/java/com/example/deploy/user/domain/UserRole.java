@@ -1,4 +1,4 @@
-package com.example.deploy.user.entity;
+package com.example.deploy.user.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
