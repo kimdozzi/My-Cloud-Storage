@@ -1,15 +1,16 @@
 package com.example.deploy.security.jwt.domain;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 
-@Entity
+@AllArgsConstructor
 @Getter
-@Setter
+@RedisHash(value = "token")
 public class Refresh {
 
     @Id
@@ -18,5 +19,7 @@ public class Refresh {
 
     private String username;
     private String refresh;
+
+    @TimeToLive
     private String expiration;
 }

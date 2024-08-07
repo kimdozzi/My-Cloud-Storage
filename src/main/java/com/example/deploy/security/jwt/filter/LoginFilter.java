@@ -1,5 +1,6 @@
 package com.example.deploy.security.jwt.filter;
 
+import com.example.deploy.redis.service.RedisService;
 import com.example.deploy.security.jwt.domain.Refresh;
 import com.example.deploy.security.jwt.repository.RefreshRepository;
 import com.example.deploy.security.jwt.util.JWTUtil;
@@ -24,10 +25,12 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
+    private final RedisService redisService;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RedisService redisService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
+        this.redisService = redisService;
     }
 
     @Override
@@ -60,6 +63,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.generateToken("access", username, role, 600000L);
         String refresh = jwtUtil.generateToken("refresh", username, role, 86400000L);
 
+        // Redis에 refresh 토큰 저장
+        redisService.saveRefreshToken(username, refresh);
 
         // 응답 설정
         response.setHeader("access", access);

@@ -1,5 +1,6 @@
 package com.example.deploy.security.config;
 
+import com.example.deploy.redis.service.RedisService;
 import com.example.deploy.security.jwt.filter.JWTFilter;
 import com.example.deploy.security.jwt.repository.RefreshRepository;
 import com.example.deploy.security.jwt.util.JWTUtil;
@@ -30,10 +31,12 @@ public class SecurityConfig {
     private static final String PERMITTED_ROLES[] = {"USER", "ADMIN"};
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final RedisService redisService;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil) {
+    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RedisService redisService) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtil = jwtUtil;
+        this.redisService = redisService;
     }
 
     @Bean
@@ -64,7 +67,7 @@ public class SecurityConfig {
 
                 // jwt
                 .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil),
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, redisService),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(request ->
                         request
