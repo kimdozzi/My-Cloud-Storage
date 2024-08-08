@@ -1,8 +1,6 @@
 package com.example.deploy.security.jwt.filter;
 
 import com.example.deploy.redis.service.RedisService;
-import com.example.deploy.security.jwt.domain.Refresh;
-import com.example.deploy.security.jwt.repository.RefreshRepository;
 import com.example.deploy.security.jwt.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,8 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Iterator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +19,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+@Slf4j
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
@@ -58,10 +57,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-
         // 토큰 생성
         String access = jwtUtil.generateToken("access", username, role, 600000L);
         String refresh = jwtUtil.generateToken("refresh", username, role, 86400000L);
+
+        // 로그인 성공한 유저 정보와 토큰 정보
+        log.info("LoginFilter.successfulAuthentication");
+        log.info("Username : " + username);
+        log.info("role : " + role);
+        log.info("access : " + access);
+        log.info("refresh : " + refresh);
 
         // Redis에 refresh 토큰 저장
         redisService.saveRefreshToken(username, refresh);
@@ -70,7 +75,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setHeader("access", access);
         response.addCookie(createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
-
 
 //        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 //        String username = customUserDetails.getUsername();

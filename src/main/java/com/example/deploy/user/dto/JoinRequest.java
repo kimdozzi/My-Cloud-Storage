@@ -1,11 +1,8 @@
 package com.example.deploy.user.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+public record JoinRequest(
+        String username,
+        String password
+) {
 
-@Setter
-@Getter
-public class JoinRequest {
-    private String username;
-    private String password;
 }
