@@ -1,10 +1,9 @@
 package com.example.deploy.security.config;
 
-import com.example.deploy.redis.service.RedisService;
 import com.example.deploy.security.jwt.filter.JWTFilter;
-import com.example.deploy.security.jwt.repository.RefreshRepository;
 import com.example.deploy.security.jwt.util.JWTUtil;
-import com.example.deploy.security.jwt.filter.LoginFilter;
+import com.example.deploy.security.oauth2.CustomSuccessHandler;
+import com.example.deploy.security.oauth2.service.CustomOAuth2UserService;
 import java.util.Arrays;
 import java.util.Collections;
 import org.springframework.context.annotation.Bean;
@@ -14,13 +13,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
@@ -29,50 +28,60 @@ import org.springframework.web.cors.CorsConfiguration;
 public class SecurityConfig {
 
     private static final String PERMITTED_ROLES[] = {"USER", "ADMIN"};
-    private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
-    private final RedisService redisService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
 
-    public SecurityConfig(AuthenticationConfiguration authenticationConfiguration, JWTUtil jwtUtil, RedisService redisService) {
-        this.authenticationConfiguration = authenticationConfiguration;
+    public SecurityConfig(JWTUtil jwtUtil, CustomOAuth2UserService customOAuth2UserService,
+                          CustomSuccessHandler customSuccessHandler) {
         this.jwtUtil = jwtUtil;
-        this.redisService = redisService;
+        this.customOAuth2UserService = customOAuth2UserService;
+        this.customSuccessHandler = customSuccessHandler;
     }
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        // csrf
-        http.csrf(auth -> auth.disable())
+        // CSRF disable
+        http.csrf(AbstractHttpConfigurer::disable)
 
-                // session
+                // session 상태 : STATELESS
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // cors
+                // CORS 설정
                 .cors(corsConfig -> corsConfig.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
                     config.setAllowedMethods(Collections.singletonList("*"));
                     config.setAllowCredentials(true);
                     config.setAllowedHeaders(Collections.singletonList("*"));
-                    config.setExposedHeaders(Arrays.asList("Authorization"));
                     config.setMaxAge(3600L);
+
+                    config.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization", "access", "refresh"));
                     return config;
                 }))
 
-                // http 베이직 인증 방식
+                // http 베이직 인증 방식 disable
                 .httpBasic(HttpBasicConfigurer::disable)
 
-                // 로그인 방식
+                // 로그인 방식 disable
                 .formLogin(FormLoginConfigurer::disable)
 
-                // jwt
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, redisService),
-                        UsernamePasswordAuthenticationFilter.class)
+                // OAuth2
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler))
+                .addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class)
+
+                // JWT Token (access & refresh)
+//                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
+//                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, redisService),
+//                        UsernamePasswordAuthenticationFilter.class)
+
+                // authentication & authorization
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/", "/login", "/join", "/test").permitAll()
-                                .requestMatchers("/reissue").permitAll()
+                                .requestMatchers("/reissue", "/login/**", "/auth/**", "/test").permitAll()
                                 .anyRequest().hasAnyRole(PERMITTED_ROLES));
 
         return http.build();

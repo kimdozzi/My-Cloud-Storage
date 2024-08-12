@@ -2,6 +2,7 @@ package com.example.deploy.security.jwt.util;
 
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -46,6 +47,36 @@ public class JWTUtil {
 
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    public void validateToken(String token) {
+        try {
+            getClaims(token);
+        } catch (io.jsonwebtoken.security.SignatureException ex) {
+            // 서명이 유효하지 않은 경우
+            System.out.println("Invalid JWT signature: " + ex.getMessage());
+
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            // 토큰이 만료된 경우
+            System.out.println("Expired JWT token: " + ex.getMessage());
+
+        } catch (io.jsonwebtoken.MalformedJwtException ex) {
+            // 토큰이 잘못된 형식일 경우
+            System.out.println("Invalid JWT token: " + ex.getMessage());
+
+        } catch (io.jsonwebtoken.UnsupportedJwtException ex) {
+            // 지원되지 않는 JWT 토큰일 경우
+            System.out.println("Unsupported JWT token: " + ex.getMessage());
+
+        } catch (IllegalArgumentException ex) {
+            // 빈 토큰이 제공된 경우
+            System.out.println("JWT claims string is empty: " + ex.getMessage());
+
+        } catch (JwtException ex) {
+            // 그 외의 JWT 관련 예외가 발생한 경우
+            System.out.println("JWT validation error: " + ex.getMessage());
+
+        }
     }
 
     public String getCategory(String token) {

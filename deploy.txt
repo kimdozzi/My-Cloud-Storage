@@ -1,0 +1,63 @@
+#1
+IS_BLUE=$(docker ps | grep green)
+
+DEFAULT_CONF="./nginx/sites-available/default.conf"
+
+if [ -z "$IS_BLUE" ]; then
+	echo "GREEN => BLUE"
+        echo "1. get blue image"
+        docker-compose pull blue
+        echo "2. blue container up"
+        docker-compose up -d blue
+	BEFORE_COLOR="green"
+	AFTER_COLOR="blue"
+	BEFORE_PORT=8082
+	AFTER_PORT=8081
+else
+	echo "BLUE => GREEN"
+        echo "1. get green image"
+        docker-compose pull green
+        echo "2. green container up"
+        docker-compose up -d green
+	BEFORE_COLOR="blue"
+	AFTER_COLOR="green"
+	BEFORE_PORT=8081
+	AFTER_PORT=8082
+fi
+
+echo "${AFTER_COLOR} server up(port:${AFTER_PORT})"
+
+# 2
+for RETRY_COUNT in 1 2 3 4 5 6 7 8 9 10
+do
+    echo "> #${RETRY_COUNT} trying..."
+    RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}"  http://localhost:${TARGET_PORT}/api/auth/health-check)
+
+    if [ ${RESPONSE_CODE} -eq 200 ]; then
+        echo "> New WAS successfully running"
+        break
+
+    elif [ ${RETRY_COUNT} -eq 10 ]; then
+        echo "> Health check failed."
+        exit 1
+    fi
+    sleep 10
+done
+
+if [ $cnt -eq 10 ]
+then
+	echo "서버가 정상적으로 구동되지 않았습니다."
+	exit 1
+fi
+
+# 3
+sudo sed -i "s/${BEFORE_PORT}/${AFTER_PORT}/" /home/ubuntu/service_url.inc
+sudo nginx -s reload
+echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
+sudo docker-compose stop ${BEFORE_COLOR}
+echo "Deploy Completed!!"
+
+# 4
+# echo "$BEFORE_COLOR server down(port:${BEFORE_PORT})"
+# sudo docker-compose stop ${BEFORE_COLOR}
+# sudo docker-compose -p test-${BEFORE_COLOR} -f /home/ubuntu/docker-compose-${BEFORE_COLOR}.yml down

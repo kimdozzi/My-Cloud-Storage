@@ -1,8 +1,8 @@
 package com.example.deploy.security.jwt.filter;
 
-import com.example.deploy.security.config.CustomUserDetails;
 import com.example.deploy.security.jwt.util.JWTUtil;
-import com.example.deploy.user.domain.User;
+import com.example.deploy.security.oauth2.dto.CustomOAuth2User;
+import com.example.deploy.security.oauth2.dto.UserDTO;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -73,18 +73,34 @@ public class JWTFilter extends OncePerRequestFilter {
         String username = jwtUtil.getUsername(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
-        User user = new User();
-        user.setUsername(username);
-        user.setRole(role);
-        CustomUserDetails customUserDetails = new CustomUserDetails(user);
+        UserDTO userDTO = UserDTO.builder()
+                .username(username)
+                .role(role)
+                .build();
 
-        Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null,
-                customUserDetails.getAuthorities());
+        // UserDetails에 회원 정보 객체 담기
+        // OAUTH
+        CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+
+        // JWT
+        //CustomUserDetails customUserDetails = new CustomUserDetails(user);
+
+        // 스프링 시큐리티 인증 토큰 생성
+        // OAUTH
+        Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null,
+                customOAuth2User.getAuthorities());
+        // JWT
+        //Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null,
+        //        customUserDetails.getAuthorities());
+
+        // 세션에 사용자 등록
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
 
         /*=============================================================================*/
+//
+//        == 단일 토큰 ==
 //
 //        String authorization = request.getHeader("Authorization");
 //
