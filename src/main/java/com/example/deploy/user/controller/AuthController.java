@@ -44,6 +44,7 @@ public class AuthController {
         authService.deleteRefreshToken(user.username());
     }
 
+    // 초기 발급
     @PostMapping("/auth/token/refresh")
     public ResponseEntity<UserDTO> refreshAccessToken(@RequestHeader("refresh") String refresh,
                                                       HttpServletResponse response) {
@@ -53,20 +54,30 @@ public class AuthController {
          * 응답받은 refresh를 검증하고, RTR 방식으로 access & refresh를 둘 다 발급.
          * */
 
-        // refreshToken 검증
         authService.ValidaterefreshToken(refresh);
-
-        // refreshToken에서 사용자 정보 추출
         UserDTO user = authService.getUser(refresh);
+
+        String accessToken = authService.generateAccessToken(user.username(), user.role());
+
+        // 헤더에 새로운 accessToken을 추가하여 응답
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("access", accessToken);
+        return ResponseEntity.ok().headers(headers).body(user);
+    }
+
+    // Access Token 만료 시 재발급 요청
+    @PostMapping("/auth/token/access")
+    public ResponseEntity<UserDTO> AccessToken(@RequestHeader("access") String access,
+                                                      HttpServletResponse response) {
+        UserDTO user = authService.getUser(access);
 
         // Access & Refresh Token 발급 (RTR)
         String accessToken = authService.generateAccessToken(user.username(), user.role());
         Cookie refreshTokenCookie = authService.generateRefreshToken(user.username(), user.role());
 
-        // 헤더에 새로운 accessToken과 refreshToken을 추가하여 응답
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("access", accessToken);
+        // 헤더에 accessToken과 refreshToken을 추가하여 응답
+        response.setHeader("access", accessToken);
         response.addCookie(refreshTokenCookie);
-        return ResponseEntity.ok().headers(headers).body(user);
+        return ResponseEntity.ok().body(user);
     }
 }
