@@ -1,4 +1,4 @@
-package com.example.deploy.security.oauth2;
+package com.example.deploy.security.oauth2.handler;
 
 import com.example.deploy.redis.service.RedisService;
 import com.example.deploy.security.jwt.util.JWTUtil;
@@ -45,7 +45,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String refresh = jwtUtil.generateToken("refresh", username, role, 86400000L);
 
         // Redis에 refresh 토큰 저장
-        redisService.saveRefreshToken(username, refresh);
+        redisService.saveRefreshToken(username, refresh, 60 * 60 * 60);
 
         // 로그인 성공한 유저 정보와 토큰 정보
         log.info("CustomSuccessHandler.onAuthenticationSuccess");
@@ -58,7 +58,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private Cookie createCookie(String key, String value) {
-
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(60 * 60 * 60);
         //cookie.setSecure(true);

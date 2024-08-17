@@ -9,10 +9,12 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
 @Getter
+@Slf4j
 public class JWTUtil {
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
@@ -43,7 +45,7 @@ public class JWTUtil {
                 .setIssuedAt(new Date(System.currentTimeMillis()))
 
                 // 만료일
-                .setExpiration(new Date(System.currentTimeMillis() + expiredMs)) // 10시간 유효
+                .setExpiration(new Date(System.currentTimeMillis() + expiredMs))
 
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
@@ -54,28 +56,27 @@ public class JWTUtil {
             getClaims(token);
         } catch (io.jsonwebtoken.security.SignatureException ex) {
             // 서명이 유효하지 않은 경우
-            System.out.println("Invalid JWT signature: " + ex.getMessage());
+            log.error("Invalid JWT signature: {}", ex.getMessage());
 
         } catch (io.jsonwebtoken.ExpiredJwtException ex) {
             // 토큰이 만료된 경우
-            System.out.println("Expired JWT token: " + ex.getMessage());
+            log.error("Expired JWT token: {}", ex.getMessage());
 
         } catch (io.jsonwebtoken.MalformedJwtException ex) {
             // 토큰이 잘못된 형식일 경우
-            System.out.println("Invalid JWT token: " + ex.getMessage());
+            log.error("Invalid JWT token: {}", ex.getMessage());
 
         } catch (io.jsonwebtoken.UnsupportedJwtException ex) {
             // 지원되지 않는 JWT 토큰일 경우
-            System.out.println("Unsupported JWT token: " + ex.getMessage());
+            log.error("Unsupported JWT token: {}", ex.getMessage());
 
         } catch (IllegalArgumentException ex) {
             // 빈 토큰이 제공된 경우
-            System.out.println("JWT claims string is empty: " + ex.getMessage());
+            log.error("JWT claims string is empty: {}", ex.getMessage());
 
         } catch (JwtException ex) {
             // 그 외의 JWT 관련 예외가 발생한 경우
-            System.out.println("JWT validation error: " + ex.getMessage());
-
+            log.error("JWT validation error: {}", ex.getMessage());
         }
     }
 

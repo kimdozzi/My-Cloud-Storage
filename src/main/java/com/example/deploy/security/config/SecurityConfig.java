@@ -2,7 +2,7 @@ package com.example.deploy.security.config;
 
 import com.example.deploy.security.jwt.filter.JWTFilter;
 import com.example.deploy.security.jwt.util.JWTUtil;
-import com.example.deploy.security.oauth2.CustomSuccessHandler;
+import com.example.deploy.security.oauth2.handler.CustomSuccessHandler;
 import com.example.deploy.security.oauth2.service.CustomOAuth2UserService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,7 +26,6 @@ import org.springframework.web.cors.CorsConfiguration;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private static final String PERMITTED_ROLES[] = {"USER", "ADMIN"};
     private final JWTUtil jwtUtil;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -73,6 +72,8 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler))
                 .addFilterAfter(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class)
 
+                .logout(AbstractHttpConfigurer::disable)
+
                 // JWT Token (access & refresh)
 //                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class)
 //                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, redisService),
@@ -81,7 +82,7 @@ public class SecurityConfig {
                 // authentication & authorization
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/reissue", "/login/**", "/auth/**", "/test").permitAll()
+                                .requestMatchers("/reissue", "/logout", "/login/**", "/auth/**", "/test").permitAll()
                                 .anyRequest().hasAnyRole(PERMITTED_ROLES));
 
         return http.build();

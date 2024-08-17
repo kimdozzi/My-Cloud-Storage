@@ -6,6 +6,7 @@ import com.example.deploy.security.oauth2.dto.UserDTO;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -31,11 +32,27 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 헤더에서 access키에 담긴 토큰을 꺼냄
         String accessToken = request.getHeader("access");
-        log.info("Access Token 정보 :" + accessToken);
+        String refreshToken = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refresh".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
-            log.info("access token is null");
+            log.info("accessToken is null");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 토큰이 없다면 다음 필터로 넘김
+        if (refreshToken == null) {
+            log.info("refreshToken is null");
             filterChain.doFilter(request, response);
             return;
         }
@@ -44,27 +61,36 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             jwtUtil.isTokenExpired(accessToken);
         } catch (ExpiredJwtException e) {
-
-            //response body
             PrintWriter writer = response.getWriter();
-            writer.print("access token expired");
-
-            //response status code
+            writer.print("accessToken expired");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        // access가 아니라면 다음 필터로 넘기지 않음
-        String category = jwtUtil.getCategory(accessToken);
+        // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
+        try {
+            jwtUtil.isTokenExpired(refreshToken);
+        } catch (ExpiredJwtException e) {
+            PrintWriter writer = response.getWriter();
+            writer.print("refreshToken expired");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
-        if (!category.equals("access")) {
+        // 토큰이 카테고리 확인 (발급시 페이로드에 명시)
+        String accessCategory = jwtUtil.getCategory(accessToken);
+        String refreshCategory = jwtUtil.getCategory(refreshToken);
 
-            //response body
+        if (!accessCategory.equals("access")) {
             PrintWriter writer = response.getWriter();
             writer.print("invalid access token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
-            //response status code
+        if (!refreshCategory.equals("refresh")) {
+            PrintWriter writer = response.getWriter();
+            writer.print("invalid refresh token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -81,60 +107,13 @@ public class JWTFilter extends OncePerRequestFilter {
         // UserDetails에 회원 정보 객체 담기
         // OAUTH
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
-
-        // JWT
-        //CustomUserDetails customUserDetails = new CustomUserDetails(user);
-
-        // 스프링 시큐리티 인증 토큰 생성
-        // OAUTH
         Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null,
                 customOAuth2User.getAuthorities());
-        // JWT
-        //Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null,
-        //        customUserDetails.getAuthorities());
 
         // 세션에 사용자 등록
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
         filterChain.doFilter(request, response);
 
-        /*=============================================================================*/
-//
-//        == 단일 토큰 ==
-//
-//        String authorization = request.getHeader("Authorization");
-//
-//        if (authorization == null || !authorization.startsWith("Bearer ")) {
-//            System.out.println("Token NULL");
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        System.out.println("authorization now");
-//        String token = authorization.split(" ")[1];
-//
-//        if (jwtUtil.isTokenExpired(token)) {
-//            System.out.println("token expired");
-//            filterChain.doFilter(request, response);
-//
-//            return;
-//        }
-//
-//        String username = jwtUtil.getUsername(token);
-//        String role = jwtUtil.getRole(token);
-//
-//        System.out.println(username + " " + role);
-//        User user = new User();
-//        user.setUsername(username);
-//        // user.setPassword("temppassword");
-//        user.setRole("ROLE_" + role);
-//
-//        CustomUserDetails customUserDetails = new CustomUserDetails(user);
-//
-//        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-//                customUserDetails, null, customUserDetails.getAuthorities());
-//        SecurityContextHolder.getContext().setAuthentication(authToken);
-//
-//        filterChain.doFilter(request, response);
     }
 }

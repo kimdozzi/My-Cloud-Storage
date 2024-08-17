@@ -32,13 +32,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2Response oAuth2Response;
         if (registrationId.equals("naver")) {
             oAuth2Response = new NaverOAuth2Response(oAuth2User.getAttributes());
-        } else if(registrationId.equals("google")) {
+        } else if (registrationId.equals("google")) {
             oAuth2Response = new GoogleOAuth2Response(oAuth2User.getAttributes());
-        } else return null;
-
+        } else {
+            return null;
+        }
 
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
-        String username = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
+        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
 
         User existData = userRepository.findByUsername(username);
         if (existData == null) {
@@ -75,13 +76,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             return new CustomOAuth2User(userDTO);
         }
-//
-//        UserDTO userDTO = UserDTO.builder()
-//                .role("ROLE_USER")
-//                .name(oAuth2Response.getName())
-//                .username(username)
-//                .build();
-
-//        return new CustomOAuth2User(userDTO);
     }
 }
