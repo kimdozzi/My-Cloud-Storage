@@ -20,8 +20,8 @@ public class AuthService {
         this.redisService = redisService;
     }
 
-    public void ValidaterefreshToken(String refreshToken) {
-        jwtUtil.validateToken(refreshToken);
+    public void ValidateToken(String token) {
+        jwtUtil.validateToken(token);
     }
 
     public UserDTO getUser(String refreshToken) {

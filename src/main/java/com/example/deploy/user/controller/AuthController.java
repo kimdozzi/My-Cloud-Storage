@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,7 +25,7 @@ public class AuthController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.OK)
     public void logoutController(@RequestHeader("access") String accessToken, HttpServletRequest request,
-                                 HttpServletResponse response) {
+        HttpServletResponse response) {
         // refresh token 쿠키 값 0
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -46,16 +47,10 @@ public class AuthController {
 
     // 초기 발급
     @PostMapping("/auth/token/refresh")
-    public ResponseEntity<UserDTO> refreshAccessToken(@RequestHeader("refresh") String refresh,
-                                                      HttpServletResponse response) {
-        /*
-         * 실제로는 httpOnly를 통해 refresh token을 쿠키에서 확인하고, Access & Refresh 를 발급하는 게 정상.
-         * 하지만, 쿠키로 전달한 refresh를 클라이언트에서 정상적으로 받고, 동일한 데이터를 보내는 지 확인을 위해 이와 같이 코드를 작성.
-         * 응답받은 refresh를 검증하고, RTR 방식으로 access & refresh를 둘 다 발급.
-         * */
+    public ResponseEntity<UserDTO> refreshAccessToken(@CookieValue(name = "refresh") String refreshToken) {
 
-        authService.ValidaterefreshToken(refresh);
-        UserDTO user = authService.getUser(refresh);
+		authService.ValidateToken(refreshToken);
+        UserDTO user = authService.getUser(refreshToken);
 
         String accessToken = authService.generateAccessToken(user.username(), user.role());
 
@@ -67,8 +62,11 @@ public class AuthController {
 
     // Access Token 만료 시 재발급 요청
     @PostMapping("/auth/token/access")
-    public ResponseEntity<UserDTO> AccessToken(@RequestHeader("access") String access,
-                                                      HttpServletResponse response) {
+    public ResponseEntity<UserDTO> AccessToken(@CookieValue(name = "refresh") String refreshToken, @RequestHeader("access") String access,
+        HttpServletResponse response) {
+
+        authService.ValidateToken(refreshToken);
+
         UserDTO user = authService.getUser(access);
 
         // Access & Refresh Token 발급 (RTR)
