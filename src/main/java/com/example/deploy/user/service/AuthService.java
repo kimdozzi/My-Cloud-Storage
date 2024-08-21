@@ -7,6 +7,7 @@ import com.example.deploy.user.domain.User;
 import com.example.deploy.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -45,12 +46,14 @@ public class AuthService {
         return jwtUtil.generateToken("access", username, role, 600000L);
     }
 
+    @Transactional
     public Cookie generateRefreshToken(String username, String role) {
         String refresh = jwtUtil.generateToken("refresh", username, role, 56800000L);
         redisService.saveRefreshToken(username, refresh, 60*60*60);
         return createCookie("refresh", refresh);
     }
 
+    @Transactional
     public void deleteRefreshToken(String username) {
         redisService.deleteRefreshToken(username);
     }
