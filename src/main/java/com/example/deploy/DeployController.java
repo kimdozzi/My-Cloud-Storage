@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class DeployController {
     @GetMapping("/test")
     public ResponseEntity hello() {
-        return ResponseEntity.ok("배포 자동화 테스트");
+        return ResponseEntity.ok("배포 자동화 테스트!!");
     }
 }
